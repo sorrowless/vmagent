@@ -12,9 +12,11 @@ vmagent_address: "127.0.0.1"
 vmagent_remotewrite_address: "{{ ansible_host }}"
 vmagent_remotewrite_port: 8480
 vmagent_port: 8429
+vmagent_log_level: ERROR
 vmagent_command:
-  - '--promscrape.config=/etc/prometheus/prometheus.yml'
-  - '--remoteWrite.url=http://{{ vmagent_remotewrite_address }}:{{ vmagent_remotewrite_port }}/insert/0/prometheus/'
+  - '-promscrape.config=/etc/prometheus/prometheus.yml'
+  - '-remoteWrite.url=http://{{ vmagent_remotewrite_address }}:{{ vmagent_remotewrite_port }}/insert/0/prometheus/'
+  - '-loggerLevel={{ vmagent_log_level }}'
 
 vmagent_reload_url: 'http://127.0.0.1:{{ vmagent_port }}/-/reload'
 vmagent_check_command: 'docker exec -i  `docker ps -qf name={{ vmagent_container_name }}` ./vmagent-prod -dryRun -promscrape.config=/etc/prometheus/prometheus.yml'
