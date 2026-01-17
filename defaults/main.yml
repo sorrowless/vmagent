@@ -7,11 +7,13 @@ vmagent_docker_labels:
 vmagent_config_dir: /var/lib/vmagent
 vmagent_storage_dir: "{{ vmagent_config_dir }}/data"
 vmagent_address: "127.0.0.1"
+vmagent_port: 8429
+vmagent_ports:
+  - "{{ vmagent_address }}:{{ vmagent_port }}:8429"
 
 # address and port vminsert or balancer
 vmagent_remotewrite_address: "{{ ansible_host }}"
 vmagent_remotewrite_port: 8480
-vmagent_port: 8429
 vmagent_log_level: ERROR
 vmagent_command:
   - '-promscrape.config=/etc/prometheus/prometheus.yml'
