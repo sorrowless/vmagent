@@ -34,6 +34,17 @@
       - Check configuration
       - Reload vmagent
 
+  - name: Ensure relabels configuration file
+    template:
+      src: relabels.yml.j2
+      dest: "{{ vmagent_config_dir }}/relabels.yml"
+      mode: 0755
+      owner: root
+      group: root
+    notify:
+      - Check configuration
+      - Reload vmagent
+
   - name: Find scrape_configs files
     find:
       paths: "{{ vmagent_config_dir }}/scrape_configs"
@@ -137,12 +148,20 @@
       register: config_changes
       run_once: True
 
+    - name: Check if relabel-file has changes
+      community.docker.docker_config:
+        name: vmagent-relabel-config
+        data: "{{ vmagent_relabel_configs | to_nice_yaml(indent=2) }}"
+      check_mode: yes
+      register: relabel_config_changes
+      run_once: True
+
     - name: Delete service
       community.docker.docker_swarm_service:
         state: absent
         name: "{{ vmagent_stack_name }}_vmagent"
       run_once: True
-      when: config_changes.changed
+      when: config_changes.changed or relabel_config_changes.changed
 
     - name: Update config
       community.docker.docker_config:
@@ -151,6 +170,14 @@
         state: present
       run_once: True
       when: config_changes.changed
+
+    - name: Update relabel config
+      community.docker.docker_config:
+        name: vmagent-relabel-config
+        data: "{{ vmagent_relabel_configs | to_nice_yaml(indent=2) }}"
+        state: present
+      run_once: True
+      when: relabel_config_changes.changed
 
     - name: Deploy docker vmagent container in swarm
       community.docker.docker_stack:
@@ -168,6 +195,8 @@
                 configs:
                   - source: vmagent-config
                     target: /etc/prometheus/prometheus.yml
+                  - source: vmagent-relabel-config
+                    target: /etc/prometheus/relabels.yml
                 volumes:
                   - "/var/run/docker.sock:/var/run/docker.sock:ro"
                 extra_hosts: "{{ vmagent_extra_hosts }}"
@@ -175,6 +204,8 @@
                 networks: "{{ vmagent_swarm_networks.keys() }}"
             configs:
               vmagent-config:
+                external: true
+              vmagent-relabel-config:
                 external: true
             networks: "{{ vmagent_swarm_networks }}"
       run_once: True

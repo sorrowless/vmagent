@@ -46,6 +46,18 @@ vmagent_additional_configs: []
   #       labels:
   #         dns_hostname: "{{ ansible_host }}"
 
+vmagent_relabel_configs: []
+# Example of additional configuration files with relabel configs. They will be placed in file named in
+# 'filename' field value with content of 'data' field. You can add as many
+# relabel configs as needed.
+#   # ОТПРАВЛЯЕМ только агрегированные метрики (по префиксам)
+#   - source_labels: [__name__]
+#     regex: 'xray:.*'
+#     action: keep
+#   # НЕ отправляем исходные высококардинальные метрики
+#   - source_labels: [__name__]
+#     regex: 'xray_access.*'
+#     action: drop
 
 vmagent_stack_name: victoriametrics
 vmagent_swarm_cluster: false
